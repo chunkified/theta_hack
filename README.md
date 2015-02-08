@@ -1,6 +1,11 @@
 # theta_hack
 theta_hack for cicp project
 
+使用機器
+- Ricoh Theta Camera ver.1 
+- Raspberry Pi B+
+- GPS Module PMB-648
+
 ##目次  　
 １．ThetaカメラをPythonで制御する  
 ２．JPEGのexifデータをpythonで解析する  
