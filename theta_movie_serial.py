@@ -734,20 +734,22 @@ class Thread(threading.Thread):
         super(Thread, self).__init__()
         self.n = n
         self.t = t
+        #=====Establishing serial connection when the gps module is conntected========
+        ser = serial.Serial('/dev/ttyAMA0',4800)
 
     def run(self):
         print " === start sub thread (sub class) === "
         # ===== Read GPS ===== 以下にGPS取得コードを記述
         for i in range(self.n):
             time.sleep(self.t)
-            print "Sub Thread (sub class) : " + str(datetime.datetime.today())
+            for n in 5:
+                print ser.readline()
+            # print "Sub Thread (sub class) : " + str(datetime.datetime.today())
         print " === end sub thread (sub class) === "
 
 #==============================================================================
 if __name__ == '__main__':
-     =====Establishing serial connection when the gps module is conntected========
-     ser = serial.Serial('/dev/ttyAMA0',4800)
-
+ 
     # ===== Thread Class : create instance =====
     thread_cl = Thread(10, 1) 
 
