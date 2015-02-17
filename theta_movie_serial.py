@@ -4,10 +4,10 @@
 import socket
 import struct
 import subprocess
-import time
-import serial
 import threading
+import time
 import datetime
+import serial
 
 DEBUG = True
 DEBUG2 = False
@@ -725,37 +725,53 @@ def create():
     t.open()
     return t
 
-class TestThread(threading.Thread):
+#======== Multi Thread Class ======================================================================
+class Thread(threading.Thread):
 
-    """docstring for TestThread"""
+    """docstring for Thread"""
 
     def __init__(self, n, t):
-        super(TestThread, self).__init__()
+        super(Thread, self).__init__()
         self.n = n
         self.t = t
 
     def run(self):
         print " === start sub thread (sub class) === "
+        # ===== Read GPS ===== 以下にGPS取得コードを記述
         for i in range(self.n):
             time.sleep(self.t)
-            print "sub thread (sub class) : " + str(datetime.datetime.today())
+            print "Sub Thread (sub class) : " + str(datetime.datetime.today())
         print " === end sub thread (sub class) === "
-
 
 #==============================================================================
 if __name__ == '__main__':
+     =====Establishing serial connection when the gps module is conntected========
+     ser = serial.Serial('/dev/ttyAMA0',4800)
 
-    # =====Establishing serial connection when the gps module is conntected========
-    # ser = serial.Serial('/dev/ttyAMA0',4800)
+    # ===== Thread Class : create instance =====
+    thread_cl = Thread(10, 1) 
 
+    # ===== Theta Class : create instance =====
     theta = THETA360()
 
     if theta.open() is True :
 
+        # ===== Movie Capture : Start =====
         theta.InitiateOpenCapture()
-        while 1:
-        	time.sleep(180)
-        	theta.TerminateOpenCapture()
+        print " === start main thread (main) === "
+
+        # ===== Sub Thread : Read GPS =====
+        thread_cl.start()
+        
+        # ===== Main Thread : Sleep =====
+        sleep_time = 10
+        for i in range(sleep_time): # 10 seconds sleep
+            time.sleep(1)
+            print "Main Thread : sleep count: " + str(i+1) + " / " + str(sleep_time)
+
+        # ===== Movie Capture : End =====
+        print " == end main thread === "
+        theta.TerminateOpenCapture()
 
         # ===========Download image===========================================
         #num_objs = theta.prepare()
