@@ -6,6 +6,8 @@ import struct
 import subprocess
 import time
 import serial
+import threading
+import datetime
 
 DEBUG = True
 DEBUG2 = False
@@ -723,6 +725,23 @@ def create():
     t.open()
     return t
 
+class TestThread(threading.Thread):
+
+    """docstring for TestThread"""
+
+    def __init__(self, n, t):
+        super(TestThread, self).__init__()
+        self.n = n
+        self.t = t
+
+    def run(self):
+        print " === start sub thread (sub class) === "
+        for i in range(self.n):
+            time.sleep(self.t)
+            print "sub thread (sub class) : " + str(datetime.datetime.today())
+        print " === end sub thread (sub class) === "
+
+
 #==============================================================================
 if __name__ == '__main__':
 
@@ -733,14 +752,10 @@ if __name__ == '__main__':
 
     if theta.open() is True :
 
-        #while 1: # repeat shutter
         theta.InitiateOpenCapture()
-        #while 1:
-        #    theta.InitiateCapture()
-
-        time.sleep(10)
-
-        theta.TerminateOpenCapture()
+        while 1:
+        	time.sleep(180)
+        	theta.TerminateOpenCapture()
 
         # ===========Download image===========================================
         #num_objs = theta.prepare()
