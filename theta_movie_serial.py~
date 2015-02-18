@@ -764,45 +764,45 @@ if __name__ == '__main__':
 
     # ===== Theta Class : create instance =====
     theta = THETA360()
-    while 1:
-        if theta.open() is True :
-    	# ===== Movie Capture : Start =====
-           	
-            theta.InitiateOpenCapture()
-            print " === start main thread (main) === "
-            # ===== Thread Class : create instance =====
-            thread_cl = Thread(20, 1) 
 
-        	# ===== Sub Thread : Read GPS =====
-        	thread_cl.start()
-                
-            # ===== Main Thread : Sleep =====
-            sleep_time = 20
-            for i in range(sleep_time): # 10 seconds sleep
-                	time.sleep(1)
-                	print "Main Thread : sleep count: " + str(i+1) + " / " + str(sleep_time)
+    if theta.open() is True :
+	# ===== Movie Capture : Start =====
+       	
+        theta.InitiateOpenCapture()
+        print " === start main thread (main) === "
+        # ===== Thread Class : create instance =====
+        thread_cl = Thread(20, 1) 
 
-        	# ===== Movie Capture : End =====
-        	print " == end main thread === "
-            theta.TerminateOpenCapture()
+    	# ===== Sub Thread : Read GPS =====
+    	thread_cl.start()
+            
+        # ===== Main Thread : Sleep =====
+        sleep_time = 20
+        for i in range(sleep_time): # 10 seconds sleep
+            	time.sleep(1)
+            	print "Main Thread : sleep count: " + str(i+1) + " / " + str(sleep_time)
 
-                # ===========Download image===========================================
-                #num_objs = theta.prepare()
-                #obj_idx = num_objs - 1
-                #obj_info = theta.get_info(obj_idx)
-                #image = theta.get_object(obj_idx)
-                #theta.write_local(obj_info['Filename'], image)
-                #print obj_info['Filename']
+    	# ===== Movie Capture : End =====
+    	print " == end main thread === "
+        theta.TerminateOpenCapture()
 
-                # ===========extracting GPS data from Exif============================
-                #p = subprocess.Popen(["EXIF.py",obj_info['Filename']], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                #fn = obj_info['Filename'].rstrip('.JPG')
-                #f = open('gps_data_%s.txt' % fn,'wb')
-                #for line in iter(p.stdout.readline, '\n'):
-                #    if 'GPS' in line.rstrip():
-                #        print(line.rstrip())
-                #        f.write(line)
-                #f.close()
+            # ===========Download image===========================================
+            #num_objs = theta.prepare()
+            #obj_idx = num_objs - 1
+            #obj_info = theta.get_info(obj_idx)
+            #image = theta.get_object(obj_idx)
+            #theta.write_local(obj_info['Filename'], image)
+            #print obj_info['Filename']
+
+            # ===========extracting GPS data from Exif============================
+            #p = subprocess.Popen(["EXIF.py",obj_info['Filename']], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            #fn = obj_info['Filename'].rstrip('.JPG')
+            #f = open('gps_data_%s.txt' % fn,'wb')
+            #for line in iter(p.stdout.readline, '\n'):
+            #    if 'GPS' in line.rstrip():
+            #        print(line.rstrip())
+            #        f.write(line)
+            #f.close()
 
     theta.close()
 
