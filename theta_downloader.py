@@ -4,16 +4,11 @@
 import socket
 import struct
 import subprocess
-import threading
 import time
-import datetime
 import serial
 
-global ser
-global index
-index = 0
 DEBUG = True
-DEBUG2 = False
+DEBUG2 = True
 
 PTP_OC_GetDeviceInfo      = 0x1001
 PTP_OC_OpenSession        = 0x1002
@@ -39,14 +34,14 @@ PTP_RC_OK        = 0x2001
 
 # Object Format Code
 PTP_OFC_Undefined   = 0x3000
-PTP_OFC_Association = 0x3001
+PTP_OFC_Association = 0x3001 
 PTP_OFC_EXIF_JPEG   = 0x3801
 PTP_OFC_JFIF        = 0x3808
 
 PTP_EC_ObjectAdded       = 0x4002
 PTP_EC_DevicePropChanged = 0x4006
 PTP_EC_StoreFull         = 0x400a
-PTP_EC_CaptureComplete   = 0x400d
+PTP_EC_CaptureComplete   = 0x400d 
 
 #==============================================================================
 class PTP_IP(object):
@@ -145,6 +140,10 @@ class PTP_IP(object):
                                     '', PTP_OC_GetStorageIDs)
         self.transaction_id += 1
         result, args, payload = self.Wait_PTPCommandResponse(self.command_sock)
+        print payload
+        print result
+        print args
+        print "done"
         if result != PTP_RC_OK:
             print 'Failed'
             return []
@@ -249,7 +248,7 @@ class PTP_IP(object):
 
         print 'Wait PTP_EC_CaptureComplete'
         handle = 0
-        while 1:
+        for loop in range(0, 20):
             ptp_event, args = self.Wait_PTPEvent(self.event_sock)
             if ptp_event == PTP_EC_CaptureComplete:
                 break
@@ -307,6 +306,7 @@ class PTP_IP(object):
                 break
 
         return handle
+
 
     # -------------------------------------------------------------------------
     def Send_InitCommandRequest(self, sock):
@@ -596,6 +596,9 @@ class PTP_IP(object):
             val = 0x10000 + val
         return struct.pack('<H', val)
 
+    def unpackInt64(self, payload):
+        return struct.unpack('<Q', payload)[0]
+
     # -------------------------------------------------------------------------
     def unpackInt32Array(self, payload):
         num_items = self.unpackInt32(payload[0:4])
@@ -606,6 +609,17 @@ class PTP_IP(object):
         while idx < len(payload):
             items.append(self.unpackInt32(payload[idx:idx+4]))
             idx += 4
+        return items
+
+    def unpackInt64Array(self, payload):
+        num_items = self.unpackInt64(payload[0:8])
+        if num_items == 0 or (num_items * 8) > (len(payload) - 8):
+            return []
+        items = []
+        idx = 8
+        while idx < len(payload):
+            items.append(self.unpackInt32(payload[idx:idx+8]))
+            idx += 8
         return items
 
     # -------------------------------------------------------------------------
@@ -678,10 +692,6 @@ class THETA360(PTP_IP):
         self.InitiateCapture()
 
     # -------------------------------------------------------------------------
-    def opneshutter(self):
-        self.InitiatOpenCapture()
-
-    # -------------------------------------------------------------------------
     def num_files(self):
         ids = self.GetStorageIDs()
         if len(ids) == 0:
@@ -719,7 +729,8 @@ class THETA360(PTP_IP):
     # -------------------------------------------------------------------------
     def write_local(self, filename, image):
         f = open(filename, 'wb')
-        f.write(image)
+        for item in image:
+            f.write("%s\n" % item)
         f.close()
 
 #==============================================================================
@@ -728,79 +739,27 @@ def create():
     t.open()
     return t
 
-#======== Multi Thread Class ======================================================================
-class Thread(threading.Thread):
-
-    """docstring for Thread"""
-	
-    def __init__(self, n, t):
-	global ser
-        super(Thread, self).__init__()
-        self.n = n
-        self.t = t
-
-    def run(self):
-        global ser
-	global index
-	print " === start sub thread (sub class) === "
-        # ===== Read GPS ===== 以下にGPS取得コードを記述
-        #=====Establishing serial connection when the gps module is conntected=======
-	ser = serial.Serial('/dev/ttyAMA0',4800)
-
-	f = open('./gps_log/'+str(index)+'.txt','w')
-        for i in range(self.n):
-            time.sleep(self.t)
-            for n in range(0,5):
-		f.write(ser.readline())
-	f.close()
-	index =+ 1
-            # print "Sub Thread (sub class) : " + str(datetime.datetime.today())
-        print " === end sub thread (sub class) === "
-
 #==============================================================================
 if __name__ == '__main__':
 
-	# ===== Theta Class : create instance ====
-	theta = THETA360()
+    # =====Establishing serial connection when the gps module is conntected========
+    # ser = serial.Serial('/dev/ttyAMA0',4800)
 
-	while 1:
-		if theta.open() is True :
-			# ===== Movie Capture : Start ====
-			theta.InitiateOpenCapture()
-        		print " === start main thread (main) === "
-	
-			# ===== Thread Class : create instance ====
-			thread_cl = Thread(150, 1) 
+    theta = THETA360()
 
-			# ===== Sub Thread : Read GPS =====
-			thread_cl.start()
-        	
-	        	# ===== Main Thread : Sleep ====
-			sleep_time = 150
-			for i in range(sleep_time): # 150 seconds sleep
-				time.sleep(1)
-				print "Main Thread : sleep count: " + str(i+1) + " / " + str(sleep_time)
+    if theta.open() is True :
 
-			# ===== Movie Capture : End =====
-			print " == end main thread === "
-			theta.TerminateOpenCapture()
-            time.sleep(1)
+        # theta.InitiateOpenCapture()
+        # time.sleep(20)
+        # theta.TerminateOpenCapture()
+        # time.sleep(10)
         # ===========Download image===========================================
-        #num_objs = theta.prepare()
-        #obj_idx = num_objs - 1
-        #obj_info = theta.get_info(obj_idx)
-        #image = theta.get_object(obj_idx)
-        #theta.write_local(obj_info['Filename'], image)
-        #print obj_info['Filename']
-
-        # ===========extracting GPS data from Exif============================
-        #p = subprocess.Popen(["EXIF.py",obj_info['Filename']], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        #fn = obj_info['Filename'].rstrip('.JPG')
-        #f = open('gps_data_%s.txt' % fn,'wb')
-        #for line in iter(p.stdout.readline, '\n'):
-        #    if 'GPS' in line.rstrip():
-        #        print(line.rstrip())
-        #        f.write(line)
-        #f.close()
-
-	theta.close()
+        num_objs = theta.prepare()
+        obj_idx = num_objs - 1
+        print str(obj_idx) + "obj_idx"
+        obj_info = theta.get_info(obj_idx)
+        image = theta.get_object(obj_idx)
+        theta.write_local(obj_info['Filename'], image)
+        print obj_info['Filename']
+    
+        theta.close()

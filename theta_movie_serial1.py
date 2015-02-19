@@ -11,7 +11,7 @@ import serial
 
 global ser
 global index
-index = 0
+
 DEBUG = True
 DEBUG2 = False
 
@@ -735,18 +735,20 @@ class Thread(threading.Thread):
 	
     def __init__(self, n, t):
 	global ser
+	global index
+	index = 0
         super(Thread, self).__init__()
         self.n = n
         self.t = t
+        #=====Establishing serial connection when the gps module is conntected=======
+	ser = serial.Serial('/dev/ttyAMA0',4800)
+
 
     def run(self):
         global ser
 	global index
 	print " === start sub thread (sub class) === "
         # ===== Read GPS ===== 以下にGPS取得コードを記述
-        #=====Establishing serial connection when the gps module is conntected=======
-	ser = serial.Serial('/dev/ttyAMA0',4800)
-
 	f = open('./gps_log/'+str(index)+'.txt','w')
         for i in range(self.n):
             time.sleep(self.t)
@@ -760,47 +762,47 @@ class Thread(threading.Thread):
 #==============================================================================
 if __name__ == '__main__':
 
-	# ===== Theta Class : create instance ====
-	theta = THETA360()
+    # ===== Theta Class : create instance =====
+    theta = THETA360()
+    while 1:
+        if theta.open() is True :
+    	# ===== Movie Capture : Start =====
+           	
+            theta.InitiateOpenCapture()
+            print " === start main thread (main) === "
+            # ===== Thread Class : create instance =====
+            thread_cl = Thread(20, 1) 
 
-	while 1:
-		if theta.open() is True :
-			# ===== Movie Capture : Start ====
-			theta.InitiateOpenCapture()
-        		print " === start main thread (main) === "
-	
-			# ===== Thread Class : create instance ====
-			thread_cl = Thread(150, 1) 
+        	# ===== Sub Thread : Read GPS =====
+        	thread_cl.start()
+                
+            # ===== Main Thread : Sleep =====
+            sleep_time = 20
+            for i in range(sleep_time): # 10 seconds sleep
+                	time.sleep(1)
+                	print "Main Thread : sleep count: " + str(i+1) + " / " + str(sleep_time)
 
-			# ===== Sub Thread : Read GPS =====
-			thread_cl.start()
-        	
-	        	# ===== Main Thread : Sleep ====
-			sleep_time = 150
-			for i in range(sleep_time): # 150 seconds sleep
-				time.sleep(1)
-				print "Main Thread : sleep count: " + str(i+1) + " / " + str(sleep_time)
+        	# ===== Movie Capture : End =====
+        	print " == end main thread === "
+            theta.TerminateOpenCapture()
 
-			# ===== Movie Capture : End =====
-			print " == end main thread === "
-			theta.TerminateOpenCapture()
-            time.sleep(1)
-        # ===========Download image===========================================
-        #num_objs = theta.prepare()
-        #obj_idx = num_objs - 1
-        #obj_info = theta.get_info(obj_idx)
-        #image = theta.get_object(obj_idx)
-        #theta.write_local(obj_info['Filename'], image)
-        #print obj_info['Filename']
+                # ===========Download image===========================================
+                #num_objs = theta.prepare()
+                #obj_idx = num_objs - 1
+                #obj_info = theta.get_info(obj_idx)
+                #image = theta.get_object(obj_idx)
+                #theta.write_local(obj_info['Filename'], image)
+                #print obj_info['Filename']
 
-        # ===========extracting GPS data from Exif============================
-        #p = subprocess.Popen(["EXIF.py",obj_info['Filename']], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        #fn = obj_info['Filename'].rstrip('.JPG')
-        #f = open('gps_data_%s.txt' % fn,'wb')
-        #for line in iter(p.stdout.readline, '\n'):
-        #    if 'GPS' in line.rstrip():
-        #        print(line.rstrip())
-        #        f.write(line)
-        #f.close()
+                # ===========extracting GPS data from Exif============================
+                #p = subprocess.Popen(["EXIF.py",obj_info['Filename']], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                #fn = obj_info['Filename'].rstrip('.JPG')
+                #f = open('gps_data_%s.txt' % fn,'wb')
+                #for line in iter(p.stdout.readline, '\n'):
+                #    if 'GPS' in line.rstrip():
+                #        print(line.rstrip())
+                #        f.write(line)
+                #f.close()
 
-	theta.close()
+    theta.close()
+
