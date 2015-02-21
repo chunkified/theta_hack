@@ -11,6 +11,8 @@ import serial
 
 global ser
 global index
+global sleep_time = 150
+
 index = 0
 DEBUG = True
 DEBUG2 = False
@@ -734,32 +736,29 @@ class Thread(threading.Thread):
     """docstring for Thread"""
 	
     def __init__(self, n, t):
-	global ser
-        super(Thread, self).__init__()
+    	super(Thread, self).__init__()
         self.n = n
         self.t = t
 
     def run(self):
         global ser
-	global index
-	print " === start sub thread (sub class) === "
+        global index
+        global sleep_time
+        print " === start sub thread (sub class) === "
         # ===== Read GPS ===== 以下にGPS取得コードを記述
         #=====Establishing serial connection when the gps module is conntected=======
-	ser = serial.Serial('/dev/ttyAMA0',4800)
-
-	f = open('./gps_log/'+str(index)+'.txt','w')
-        for i in range(self.n):
-            time.sleep(self.t)
-            for n in range(0,5):
-		f.write(ser.readline())
-	f.close()
-	index =+ 1
-            # print "Sub Thread (sub class) : " + str(datetime.datetime.today())
+        ser = serial.Serial('/dev/ttyAMA0',4800)
+        start_time = datetime.datetime.now()
+        f = open('./gps_log/'+str(start_time)+'.txt','w')
+        while self.n <= sleep_time:  
+            f.write(ser.readline())
+        f.close()
+        #print "Sub Thread (sub class) : " + str(datetime.datetime.today())
         print " === end sub thread (sub class) === "
 
 #==============================================================================
 if __name__ == '__main__':
-
+    global sleep_time
 	# ===== Theta Class : create instance ====
 	theta = THETA360()
 
@@ -767,16 +766,15 @@ if __name__ == '__main__':
 		if theta.open() is True :
 			# ===== Movie Capture : Start ====
 			theta.InitiateOpenCapture()
-        		print " === start main thread (main) === "
+        	print " === start main thread (main) === "
 	
 			# ===== Thread Class : create instance ====
-			thread_cl = Thread(150, 1) 
+			thread_cl = Thread(sleep_time, 1) 
 
 			# ===== Sub Thread : Read GPS =====
 			thread_cl.start()
         	
 	        	# ===== Main Thread : Sleep ====
-			sleep_time = 150
 			for i in range(sleep_time): # 150 seconds sleep
 				time.sleep(1)
 				print "Main Thread : sleep count: " + str(i+1) + " / " + str(sleep_time)
