@@ -9,7 +9,7 @@ import time
 import datetime
 import serial
 
-sleep_time = 10
+sleep_time = 10 //theta video capture time lenght
 
 index = 0
 DEBUG = True
