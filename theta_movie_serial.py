@@ -9,9 +9,6 @@ import time
 import datetime
 import serial
 
-global ser
-global index
-global sleep_time
 sleep_time = 10
 
 index = 0
@@ -750,17 +747,17 @@ class Thread(threading.Thread):
 	ser = serial.Serial('/dev/ttyAMA0',4800)
 	start_time = datetime.datetime.now()
 	f = open('./gps_log/'+str(start_time)+'.txt','w')
+	i = 0
         while i <= self.n:
         	time.sleep(self.t)
         	f.write(ser.readline())
-        	i++
+        	i = i + 1
 	f.close()
             # print "Sub Thread (sub class) : " + str(datetime.datetime.today())
         print " === end sub thread (sub class) === "
 
 #==============================================================================
 if __name__ == '__main__':
-	global sleep_time
 	while 1:
 		
 		# ===== Theta Class : create instance ====
@@ -807,3 +804,4 @@ if __name__ == '__main__':
 
 			theta.close()
 			time.sleep(1)
+
